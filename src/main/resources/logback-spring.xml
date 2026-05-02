@@ -1,16 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="30 seconds">
 
-    <!-- Console appender (works everywhere: local, Docker, Render) -->
+    <!-- Console appender (plain text) -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
+    <!-- JSON appender (enabled when property LOG_JSON=true) -->
+    <if condition="'${LOG_JSON:-false}' == 'true'">
+        <then>
+            <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+                <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+            </appender>
+        </then>
+    </if>
+
     <!-- Root logger: console only (cloud platforms capture stdout automatically) -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
+        <if condition="'${LOG_JSON:-false}' == 'true'">
+            <then>
+                <appender-ref ref="JSON_CONSOLE"/>
+            </then>
+        </if>
     </root>
 
 </configuration>

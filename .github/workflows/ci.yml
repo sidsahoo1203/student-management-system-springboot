@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [25]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: ${{ matrix.java }}
+          cache: "maven"
+
+      - name: Cache Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
+      - name: Build and compile
+        run: mvn -B -T1C clean test-compile
+
+      - name: Run unit tests
+        run: mvn -B -T1C test
+
+      - name: Run OWASP Dependency-Check (SCA) - fails on HIGH/CRITICAL CVEs
+        run: mvn -B org.owasp:dependency-check-maven:check -DfailOnCVSS=7 -Dformat=ALL
+
+      - name: Generate SBOM (CycloneDX)
+        run: mvn -B org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-results
+          path: target/surefire-reports
+
+      - name: Upload dependency-check report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: target/dependency-check-report.*
+
+      - name: Upload SBOM
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: target/bom.json

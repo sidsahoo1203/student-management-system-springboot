@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: studentmanagement
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:default}
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:student_mgmt_db;DB_CLOSE_DELAY=-1;MODE=MySQL}
+    username: ${SPRING_DATASOURCE_USERNAME:sa}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+
+server:
+  port: ${PORT:8080}
+
+jpa:
+  hibernate:
+    ddl-auto: update
+  show-sql: false
+  properties:
+    hibernate:
+      format_sql: true
+
+h2:
+  console:
+    enabled: ${H2_CONSOLE_ENABLED:true}
+
+# Logging defaults
+logging:
+  level:
+    root: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,env,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+
+# Enable prometheus scrape endpoint path
+management.endpoint.prometheus.enabled: true

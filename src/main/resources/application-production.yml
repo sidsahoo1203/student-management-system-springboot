@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/studentdb}
+    username: ${SPRING_DATASOURCE_USERNAME:student}
+    password: ${SPRING_DATASOURCE_PASSWORD:student}
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: ${OAUTH_CLIENT_ID:your-client-id}
+            client-secret: ${OAUTH_CLIENT_SECRET:your-client-secret}
+            provider: keycloak
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope: openid,profile,email
+        provider:
+          keycloak:
+            issuer-uri: ${OAUTH_ISSUER_URI:https://auth.example.com/realms/demo}
+
+logging:
+  level:
+    root: INFO
+
+server:
+  port: ${PORT:8080}

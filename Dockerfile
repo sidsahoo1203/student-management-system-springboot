@@ -1,16 +1,17 @@
-# Stage 1: Build
-FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
+# syntax=docker/dockerfile:1
+
+FROM eclipse-temurin:25-jdk AS build
 WORKDIR /app
+
 COPY . .
-RUN mvn clean package -DskipTests
+RUN sed -i 's/\r$//' mvnw && chmod +x mvnw
+RUN ./mvnw -pl web -am clean package -DskipTests
 
-# Stage 2: Run
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:25-jre
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
 
-# Set JVM options to stay within free tier memory limits (e.g., 512MB)
+COPY --from=build /app/web/target/*-SNAPSHOT.jar app.jar
+
 ENV JAVA_OPTS="-Xmx384m -Xms256m"
-
 EXPOSE 8080
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
